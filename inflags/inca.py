@@ -8,8 +8,10 @@ import re
 class InCa:
     def __init__(self, pretrained_vocab=False, vocab_file=None):
         '''
-        :param pretrained_vocab:
-        :param vocab_file:
+        initializes the InCa class, imports vocabulary and configurations if provided.
+
+        :param pretrained_vocab: bool, whether to load a pretrained vocab from file.
+        :param vocab_file: path to the vocab file, if pretrained_vocab is True.
         '''
         self._ALPHANUMERIC_CHAR_SET = set(chr(i) for i in range(sys.maxunicode) if unicodedata.category(chr(i))[0] in "LN")
 
@@ -21,9 +23,10 @@ class InCa:
 
     def train_vocab(self, data_fname: str, vocab_fname: str, min_count=1, flags={'upper': 'ꔅ', 'title': 'ꔆ', 'lower': 'ꔪ', 'allcaps': 'ꔫ'}, include_allcaps=False, include_sent_initial=False):
         '''
+        trains vocabulary from data file and saves it to a JSON file together with configurations.
 
         :param data_fname: str, path to the data file
-        :param vocab_fname: str, path to the vocab file to be saved
+        :param vocab_fname: str, path to the JSON vocab file to be saved
         :param min_count: int, minimum frequency of a word to be included in the vocab
         :param flags: dict {casing: flag}, flags to be used for case marking
         :param include_allcaps: bool, whether to include all-caps words while building the vocab
@@ -93,13 +96,8 @@ class InCa:
         """
         counts = {}
         with open(data_fname) as fileobject:
-            c = 0
             for line in fileobject:
-                c += 1
                 line = line.rstrip('\n\r')
-                if c % 10000 == 0:
-                    print(c)
-                    print(type(counts), len(counts))
 
                 # all-uppercase lines should not bias the statistics -> by default we exclude them
                 if not self.config['include_allcaps']:
