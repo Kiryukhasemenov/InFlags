@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: InFlags
+Version: 0.1
+Summary: Python package for dictionary-based inline tokenization preprocessing
+Home-page: https://github.com/Kiryukhasemenov/InFlags
+Author: Kirill Semenov (Kiryukhasemenov)
+Author-email: kirill.semenov@uzh.ch
+License: CC BY 4.0
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: author
+Dynamic: author-email
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: summary
+
+# InFlags
+Python package for dictionary-based inline tokenization preprocessing
+
+## Installation
+
+## InCa - Inline Casing
+
+## InDia - Inline Diacritization
