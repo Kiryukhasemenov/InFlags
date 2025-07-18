@@ -32,7 +32,7 @@ class InCa:
         :param include_allcaps: bool, whether to include all-caps words while building the vocab
         :param include_sent_initial: bool, whether to include sentence initial words while building the vocab
         TODO: :param flag_location: 'l' or 'r', whether to put flags before or after the word
-        :return:
+        :return: writes the vocab and configurations to the vocab_fname.
         '''
         
         # create configuration
@@ -162,9 +162,6 @@ class InCa:
     def encode(self, input_fname: str, output_fname: str, naive_encoding=False):
         """
         Encodes the content of an input file and writes the encoded output to another file.
-
-        The method applies dictionary-based encoding, and writes the encoded content to the output file. 
-        The "naive-encoding" option allows dictionary-free encoding (each cased word is explicitly flagged).
 
         :param input_fname: str, The file path to the input file containing raw data.
         :param output_fname: str, The destination file path where the encoded content will be written.
