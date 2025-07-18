@@ -7,3 +7,7 @@ InFlags.egg-info/dependency_links.txt
 InFlags.egg-info/top_level.txt
 inflags/__init__.py
 inflags/inca.py
+inflags/india.py
+scripts/__init__.py
+scripts/inca-script.py
+scripts/india-script.py
