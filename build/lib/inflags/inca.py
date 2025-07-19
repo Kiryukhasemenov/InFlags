@@ -6,33 +6,33 @@ import json
 import re
 
 class InCa:
-    def __init__(self, pretrained_vocab=False, vocab_file=None):
+    def __init__(self, pretrained_dictionary=False, dictionary_file=None):
         '''
-        initializes the InCa class, imports vocabulary and configurations if provided.
+        initializes the InCa class, imports dictionary and configurations if provided.
 
-        :param pretrained_vocab: bool, whether to load a pretrained vocab from file.
-        :param vocab_file: path to the vocab file, if pretrained_vocab is True.
+        :param pretrained_dictionary: bool, whether to load a pretrained dictionary from file.
+        :param dictionary_file: path to the dictionary file, if pretrained_dictionary is True.
         '''
         self._ALPHANUMERIC_CHAR_SET = set(chr(i) for i in range(sys.maxunicode) if unicodedata.category(chr(i))[0] in "LN")
 
-        if pretrained_vocab:
-            self.vocab, self.config = self._load_vocab(vocab_file)
+        if pretrained_dictionary:
+            self.dictionary, self.config = self._load_dictionary(dictionary_file)
 
         else:
-            print('InCa initiated; please train vocab provided with necessary configurations (use train_vocab() method) or load vocab from file (use vocab_file argument for initialization).')
+            print('InCa initiated; please train dictionary provided with necessary configurations (use train_dictionary() method) or load dictionary from file (use dictionary_file argument for initialization).')
 
-    def train_vocab(self, data_fname: str, vocab_fname: str, min_count=1, flags={'upper': 'ꔅ', 'title': 'ꔆ', 'lower': 'ꔪ', 'allcaps': 'ꔫ'}, include_allcaps=False, include_sent_initial=False):
+    def train_dictionary(self, data_fname: str, dictionary_fname: str, min_count=1, flags={'upper': 'ꔅ', 'title': 'ꔆ', 'lower': 'ꔪ', 'allcaps': 'ꔫ'}, include_allcaps=False, include_sent_initial=False):
         '''
-        trains vocabulary from data file and saves it to a JSON file together with configurations.
+        trains dictionary from data file and saves it to a JSON file together with configurations.
 
         :param data_fname: str, path to the data file
-        :param vocab_fname: str, path to the JSON vocab file to be saved
-        :param min_count: int, minimum frequency of a word to be included in the vocab
+        :param dictionary_fname: str, path to the JSON dictionary file to be saved
+        :param min_count: int, minimum frequency of a word to be included in the dictionary
         :param flags: dict {casing: flag}, flags to be used for case marking
-        :param include_allcaps: bool, whether to include all-caps words while building the vocab
-        :param include_sent_initial: bool, whether to include sentence initial words while building the vocab
+        :param include_allcaps: bool, whether to include all-caps words while building the dictionary
+        :param include_sent_initial: bool, whether to include sentence initial words while building the dictionary
         TODO: :param flag_location: 'l' or 'r', whether to put flags before or after the word
-        :return: writes the vocab and configurations to the vocab_fname.
+        :return: writes the dictionary and configurations to the dictionary_fname.
         '''
         
         # create configuration
@@ -41,11 +41,11 @@ class InCa:
         # count all possible casings for each base
         counts = self._collect_counts(data_fname)
         # save the most frequent ones
-        self.vocab = self._save_vocab(counts)
+        self.dictionary = self._save_dictionary(counts)
         
-        # Save self.config and vocab as a JSON file
-        with open(vocab_fname, 'w') as vocab_file:
-            json.dump({'config': self.config, 'vocab': self.vocab}, vocab_file, ensure_ascii=False, indent=4)
+        # Save self.config and dictionary as a JSON file
+        with open(dictionary_fname, 'w') as dictionary_file:
+            json.dump({'config': self.config, 'dictionary': self.dictionary}, dictionary_file, ensure_ascii=False, indent=4)
 
     def _tokenize(self, text):
         '''
@@ -127,37 +127,37 @@ class InCa:
 
         return counts
 
-    def _save_vocab(self, counts):
+    def _save_dictionary(self, counts):
         """
-        Saves the vocabulary as a flat dictionary {base: casing}. Works only for words which meet the conditions:
+        Saves the dictionary as a flat dictionary {base: casing}. Works only for words which meet the conditions:
         frequency is above the minimum count, the most common form differs from the base.
 
         :param counts: output of the _collect_counts function, nested dictionary for all possible casing variants.
         :return: dict of the format {base: casing}
         """
-        vocab = {}
+        dictionary = {}
         # iterating over all dictionary keys (lowercased words)
         for base in counts:
             # ordering the casing variants by their frequency
             form, count = counts[base].most_common(1)[0]
-            # if the most frequent variant is not lowercased and if its count is higher than minimal: write it to vocab
+            # if the most frequent variant is not lowercased and if its count is higher than minimal: write it to dictionary
             if count >= self.config['min_count'] and form != base:
                 # print(form)
-                vocab[base] = form
-        return vocab
+                dictionary[base] = form
+        return dictionary
 
 
-    def _load_vocab(self, vocab_fname):
+    def _load_dictionary(self, dictionary_fname):
         '''
-        loads the vocabulary and configurations from a JSON file
-        :param vocab_fname: str, path to the vocab file
-        :return config: dictionary with configuration details, such as minimal counts, flags etc.
-        :return vocab: dictionary with words and their most frequent casings
+        loads the dictionary and configurations from a JSON file
+        :param dictionary_fname: str, path to the dictionary file
+        :return config: dict with configuration details, such as minimal counts, flags etc.
+        :return dictionary: dict with words and their most frequent casings
         '''
-        with open(vocab_fname, 'r') as vocab_file:
-            data = json.load(vocab_file)
+        with open(dictionary_fname, 'r') as dictionary_file:
+            data = json.load(dictionary_file)
 
-        return data['vocab'], data['config']
+        return data['dictionary'], data['config']
 
     def encode(self, input_fname: str, output_fname: str, naive_encoding=False):
         """
@@ -232,9 +232,9 @@ class InCa:
         '''
         # A mix of lowercase and uncased letters is OK
         lc_token = token.lower()
-        vocab_form = self.vocab.get(lc_token)
-        if vocab_form:  # if the lowercased token already in dict
-            if token == vocab_form:
+        dictionary_form = self.dictionary.get(lc_token)
+        if dictionary_form:  # if the lowercased token already in dict
+            if token == dictionary_form:
                 return lc_token
             # else: the token is not the most frequent casing
             if is_first:  # if the word is in the beginning of the sentence AND not most frequent form
@@ -323,7 +323,7 @@ class InCa:
         line-level decoding function.
 
         :param line: str, The line of text to decode.
-        :param naive_decoding: bool, If True, disables advanced vocabulary-based decoding mechanisms.
+        :param naive_decoding: bool, If True, disables advanced dictionary-based decoding mechanisms.
         :return: str, The decoded text line.
 
         """
@@ -347,9 +347,9 @@ class InCa:
                     token = token.lower()
                 else:
                     if not naive_decoding:
-                        vocab_form = self.vocab.get(token)
-                        if vocab_form:
-                            token = vocab_form
+                        dictionary_form = self.dictionary.get(token)
+                        if dictionary_form:
+                            token = dictionary_form
                         elif not self.config['include_sent_initial'] and not was_first_alphanum_token and token == token.lower():
                             token = token.capitalize()
                 result.append(token)
