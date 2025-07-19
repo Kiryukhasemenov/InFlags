@@ -7,31 +7,31 @@ import collections
 import json
 
 class InDia:
-    def __init__(self, pretrained_vocab=False, vocab_file=None):
+    def __init__(self, pretrained_dictionary=False, dictionary_file=None):
         '''
-        initializes the InDia class, imports vocabulary and configurations if provided.
+        initializes the InDia class, imports dictionary and configurations if provided.
 
-        :param pretrained_vocab: bool, whether to load a pretrained vocab from file.
-        :param vocab_file: path to the vocab file, if pretrained_vocab is True.
+        :param pretrained_dictionary: bool, whether to load a pretrained dictionary from file.
+        :param dictionary_file: path to the dictionary file, if pretrained_dictionary is True.
         '''
-        if pretrained_vocab:
-            self.vocab, self.config = self._load_vocab(vocab_file)
+        if pretrained_dictionary:
+            self.dictionary, self.config = self._load_dictionary(dictionary_file)
             self._ALPHANUMERIC_CHAR_SET = self._create_alphanumeric_char_set()[1]
         else:
-            print('InDia initiated; please train vocab provided with necessary configurations (use train_vocab() method) or load vocab from file (use vocab_file argument for initialization).')
+            print('InDia initiated; please train dictionary provided with necessary configurations (use train_dictionary() method) or load dictionary from file (use dictionary_file argument for initialization).')
 
-    def train_vocab(self, data_fname, vocab_fname, diacr_list=['COMBINING ACUTE ACCENT', 'COMBINING CARON', 'COMBINING RING ABOVE'], min_count=1, order_mode='freq'):
+    def train_dictionary(self, data_fname, dictionary_fname, diacr_list=['COMBINING ACUTE ACCENT', 'COMBINING CARON', 'COMBINING RING ABOVE'], min_count=1, order_mode='freq'):
         """
-        Train a vocabulary based on input text, saving character frequencies and configurations.
+        Train a dictionary based on input text, saving character frequencies and configurations.
 
         :param data_fname: str, The path to the training data file.
-        :param vocab_fname: str, path to the JSON vocab file to be saved
+        :param dictionary_fname: str, path to the JSON dictionary file to be saved
         :param diacr_list: list[str] A list of diacritic marks to consider during processing.
                             The names should follow the Unicode standard (use `unicodedata.name(char)` to get the name).
                             The default value includes the 3 standard Czech diacritics.
-        :param min_count: int, minimum frequency of a word to be included in the vocab
+        :param min_count: int, minimum frequency of a word to be included in the dictionary
         :param order_mode: str, {'freq' or 'base'}: defines which base form is marked in the dictionary (most frequent or the un-diacritized one).
-        :return: writes the vocab and configurations to the vocab_fname.
+        :return: writes the dictionary and configurations to the dictionary_fname.
         """
         self._ALPHANUMERIC_CHAR_SET, config_dict = self._create_flag_set(diacr_list)
         config_dict['MIN_COUNT'] = min_count
@@ -42,24 +42,24 @@ class InDia:
         # count all possible casings for each base
         counts = self._collect_counts(data_fname)
         # save the most frequent ones
-        self.vocab = self._save_vocab(counts, min_count)
+        self.dictionary = self._save_dictionary(counts, min_count)
 
-        # Save self.config and vocab as a JSON file
-        with open(vocab_fname, 'w') as vocab_file:
-            json.dump({'config': self.config, 'vocab': self.vocab}, vocab_file, ensure_ascii=False, indent=4)
+        # Save self.config and dictionary as a JSON file
+        with open(dictionary_fname, 'w') as dictionary_file:
+            json.dump({'config': self.config, 'dictionary': self.dictionary}, dictionary_file, ensure_ascii=False, indent=4)
 
 
-    def _load_vocab(self, vocab_file):
+    def _load_dictionary(self, dictionary_file):
         '''
-        loads the vocabulary and configurations from a JSON file
-        :param vocab_fname: str, path to the vocab file
+        loads the dictionary and configurations from a JSON file
+        :param dictionary_fname: str, path to the dictionary file
         :return config: dictionary with configuration details, such as minimal counts, flags etc.
-        :return vocab: dictionary with words and their most frequent casings
+        :return dictionary: dictionary with words and their most frequent casings
         '''
-        with open(vocab_file, 'r') as f:
+        with open(dictionary_file, 'r') as f:
             data = json.load(f)
 
-        return data['vocab'], data['config']
+        return data['dictionary'], data['config']
 
     def _create_alphanumeric_char_set(self):
         '''
@@ -178,21 +178,21 @@ class InDia:
         stripped_line = ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.name(c) not in set(self.config['NAME2FLAG'].keys()))
         return unicodedata.normalize('NFC', stripped_line)
 
-    def _save_vocab(self, counts, min_count):
+    def _save_dictionary(self, counts, min_count):
         '''
         writing the lines to dict
         the data is organized as a json dict of the format:
             {base: most_frequent_diacritization}
         , where base = dediacritized token
         :param counts: dict, output of _collect_counts()
-        :param min_count: int, minimal frequency of a word to be included in the vocab
-        :return: dict, vocab in the format {base: most_frequent_diacritization}
+        :param min_count: int, minimal frequency of a word to be included in the dictionary
+        :return: dict, dictionary in the format {base: most_frequent_diacritization}
         '''
         json_line = {}
         for base_token in counts:
             # ordering the casing variants by their frequency
             form, count = counts[base_token].most_common(1)[0]
-            # if the most frequent variant is not base and if its count is higher than minimal: write it to vocab
+            # if the most frequent variant is not base and if its count is higher than minimal: write it to dictionary
             if form != base_token and count >= min_count:
                 json_line[base_token] = form
 
@@ -236,7 +236,7 @@ class InDia:
         for token in self._tokenize(line):
             if token[0] in self._ALPHANUMERIC_CHAR_SET:
                 base = self._dediacritize(token)
-                mostfreq_form = self.vocab.get(base, '')
+                mostfreq_form = self.dictionary.get(base, '')
 
                 if mostfreq_form == token:
                     result.append(base)
@@ -326,7 +326,7 @@ class InDia:
                 diacr_id = token
             else:
                 # base_token = dediacritize(token) # TODO: delete for speedup
-                mostfreq_form = self.vocab.get(token, '')
+                mostfreq_form = self.dictionary.get(token, '')
                 decoded_token = self._decode_token(token, diacr_id, mostfreq_form)
                 result.append(decoded_token)
                 diacr_id = {}
@@ -337,13 +337,13 @@ class InDia:
         Decodes a base by combining explicit diacritization flags with the most frequent token's diacritization.
         The priority is given to the explicit flags.
 
-        1. lookup the token in vocabulary
+        1. lookup the token in dictionary
         2. if it is - take it; else - ''
-        3. make voc_diacritization for vocab token
+        3. make dict_diacritization for dictionary token
         3. make union of two diacritizations keys
         4. for key in union:
             if key in curr_diacritization: write it down
-            elif key in voc_diacritization and not in curr_diacritization: write voc_diacritization[key]
+            elif key in dict_diacritization and not in curr_diacritization: write dict_diacritization[key]
 
         :param input_base: str, The base input token to be decoded.
         :param diacritization: dict[char_id: diacritization flag], A dictionary containing explicit flags for the input_base token.
