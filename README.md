@@ -5,6 +5,10 @@ Python package for dictionary-based inline tokenization preprocessing (featuring
 
 InCa is a system that is used **prior** to training your subword tokenizer in order to make encoding of differently cased words consistent. This is done through inline **casing approach**: the information about the casing of a word is re-allocated to the left of the word with a specific **flag**. The special feature of our method is that we only allocate the flags to the casings of the words which are **not the most frequent ones**. This is done through keeping the information about the most frequent casing for each word in a pre-trained **dictionary**. 
 
+Here is a short demonstration of the main InCa principle: 
+
+<img src="InCa.gif">
+
 Similarly to InCa, this is an **inline diacritization** approach based on dictionary. Firstly, we collect information about which diacritization is most frequent for each **base** (unique non-diacritized character sequence), and then at encoding we only mark the characters that are differing from the most frequent diacritization or are out of dictionary. 
 
 **An important difference:** while in InCa, the flags could be stored as single characters, here they are multi-character because we need to deterministically show which character IDs have which diacritics. The syntax of a flag is as follows: 
@@ -25,6 +29,12 @@ For more details, please refer to:
 1. [paper](https://openreview.net/pdf?id=9GwVWxjVmN)  presented at [Tokenization Workshop](https://tokenization-workshop.github.io) @ICML2025, 
 2. [video demonstration](https://www.youtube.com/watch?v=XgDPXWsQEwI),
 3. [summarizing poster](InCa_InDia_poster.pdf)
+
+#### We'll be happy to hear from you!
+
+This project was created for the task of Czech-Ukrainian MT. Both languages are Slavic, both use similar writing systems (Latin and Cyrillic) and similar orthographical principles. 
+
+Therefore, it will be very interesting to understand the scalability and (possibly) limits of these approaches, both to new languages and to new NLP tasks. If you do any of such experiments, please tell us about that, feel free to drop PR's and open issues! (And, of course, please cite us if you find the project interesting😉)
 
 
 ## Installation
