@@ -39,12 +39,18 @@ Therefore, it will be very interesting to understand the scalability and (possib
 
 ## Installation
 
-Currently, only Github installation is available; the PyPI package will be accessible soon.
+The project is available at GitHub and PyPI
 
-For now, just run: 
+For GitHub, run: 
 
 ```aiignore
 python3 -m pip install git+https://github.com/Kiryukhasemenov/InFlags.git
+```
+
+For PyPI, run
+
+```aiignore
+pip install InFlags
 ```
 
 ## InCa - Inline Casing
@@ -147,7 +153,6 @@ python inca-script.py -d -dict path/to/dictionary.json -i path/to/encoded/text -
 #### TODO:
 
 - [ ] add unit tests 
-- [ ] publish code on PyPI
 - [ ] add naive encoding/decoding without initializing the dictionary
 - [ ] handle OOV mixed-cased words in a more consistent manner
 - [ ] handle the Turkish letters "İ"/"i" VS "I"/"ı" (at the moment this is not fully reversible)
